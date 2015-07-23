@@ -2,7 +2,7 @@
 #   Stores the brain in Postgres
 #
 # Dependencies:
-#   "pg": "~0.10.2"
+#   "pg": "^4.4.0"
 #
 # Configuration:
 #   DATABASE_URL
@@ -15,7 +15,7 @@
 #
 #   CREATE TABLE hubot (
 #     id CHARACTER VARYING(1024) NOT NULL,
-#     storage TEXT,
+#     brain JSON NOT NULL,
 #     CONSTRAINT hubot_pkey PRIMARY KEY (id)
 #   )
 #   INSERT INTO hubot VALUES(1, NULL)
@@ -37,17 +37,16 @@ module.exports = (robot) ->
   client.connect()
   robot.logger.debug "pg-brain connected to #{database_url}."
 
-  query = client.query("SELECT storage FROM hubot LIMIT 1")
+  query = client.query("SELECT brain FROM hubot LIMIT 1")
   query.on 'row', (row) ->
-    if row['storage']?
-      robot.brain.mergeData JSON.parse(row['storage'].toString())
-      robot.logger.debug "pg-brain loaded."
+    robot.brain.mergeData row.brain
+    robot.logger.debug "pg-brain loaded."
 
   client.on "error", (err) ->
     robot.logger.error err
 
   robot.brain.on 'save', (data) ->
-    query = client.query("UPDATE hubot SET storage = $1", [JSON.stringify(data)])
+    query = client.query("UPDATE hubot SET brain = $1", [data])
     robot.logger.debug "pg-brain saved."
 
   robot.brain.on 'close', ->
