@@ -27,6 +27,7 @@ Postgres = require 'pg'
 
 # sets up hooks to persist the brain into postgres.
 module.exports = (robot) ->
+  console.log 'wat'
 
   database_url = process.env.DATABASE_URL
 
@@ -39,6 +40,7 @@ module.exports = (robot) ->
 
   query = client.query("SELECT brain FROM hubot LIMIT 1")
   query.on 'row', (row) ->
+    console.log row, row.brain
     robot.brain.mergeData row.brain
     robot.logger.debug "pg-brain loaded."
 
